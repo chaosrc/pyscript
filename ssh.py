@@ -34,7 +34,7 @@ def conssh(cmd):
         #result.sendline('exit')
         
         print('seccuss')
-        result.interact()
+        result.wait()
     except pexpect.EOF:
         print('EOF')
         result.close()
