@@ -10,14 +10,7 @@ def deal(numHands, n=5, deck=[r+s for r in '23456789TJQKA' for s in 'SHCD']):
     random.shuffle(deck)
     hands = []
     for x in range(numHands):
-        hand = deck[n*x:n*(x+1)]
-        h_str = ''
-        for h in range(len(hand)):
-            if h != len(hand)-1:
-                h_str+=hand[h]+' '
-            else:
-                h_str += hand[h]
-        hands.append(h_str)
+        hands.append(deck[n*x:n*(x+1)])
     return hands
 
 def max_hands(hands):
@@ -29,25 +22,25 @@ def max_hands(hands):
 
 def hand_rank(hand):
     "return a number rank of the hand"
-    ranks = cards_rank(hand)
-    if straight(ranks) and flush(ranks):
-        return (9, max(ranks)[0])
+    ranks, suits = cards_rank(hand)
+    if straight(ranks) and flush(suits):
+        return (9, max(ranks))
     elif kind(4, ranks):
         return (8, kind(4, ranks), kind(1, ranks))
     elif full_house(ranks):
         return (7, kind(3, ranks), kind(2, ranks))
-    elif flush(ranks):
-        return (6, [x for x, y in ranks])
+    elif flush(suits):
+        return (6, ranks)
     elif straight(ranks):
-        return (5, max(ranks)[0])
+        return (5, ranks)
     elif kind(3, ranks):
-        return (4, [x for x, y in ranks])
+        return (4, ranks)
     elif pair(2, ranks):
-        return (3, [x for x, y in ranks])
+        return (3, ranks)
     elif pair(1, ranks):
-        return (2, [x for x, y in ranks])
+        return (2, ranks)
     else:
-        return (1, [x for x, y in ranks])
+        return (1, ranks)
 
 
 def kind(n, ranks):
@@ -72,18 +65,18 @@ def full_house(ranks):
         return True
     return False
 
-def flush(ranks):
-    suit = ''
-    for k, s in ranks:
-        if suit == '':
-            suit = s
-        elif suit != s:
+def flush(suits):
+    start = ''
+    for s in suits:
+        if start == '':
+            start = s
+        elif start != s:
             return False
     return True
 
 def straight(hands):
-    before = hands[0][0]+1
-    for k, s in hands:
+    before = hands[0]+1
+    for k in hands:
         if before-k != 1:
             return False
         before = k
@@ -103,24 +96,28 @@ def card_counter(ranks):
     "count card repeated, return list like [(1,3),(11,2)]"
     count = {}
     for rank in ranks:
-        key = rank[0]
+        key = rank
         count[key] = count.get(key, 0)+1
     return [x for x in count.items()]
 
 def cards_rank(hand):
     "parse hand '2s 3d 4h 5c 6d' to rank(6,5,4,3,2,1)"
-    cards = hand.split(' ')
-    cards = [card_parse(x) for x in hand.split()]
-    cards.sort(key=lambda x: x[0], reverse=True)
-    if [x for x, y in cards] == [14, 5, 4, 3, 2]:
-        cards[0] = (1, cards[0][1])
-        cards.sort(key=lambda x: x[0], reverse=True)
-    return cards
+    if isinstance(hand, str):
+        hand = hand.split()
+    ranks = []
+    suits = []
+    for x, y in hand:
+        ranks.append(card_parse(x))
+        suits.append(y)
+    ranks.sort(reverse=True)
+    if ranks == [14, 5, 4, 3, 2]:
+        ranks = [5, 4, 3, 2, 1]
+    return ranks, suits
 
 def card_parse(card):
     "convert card to number"
-    num = '--23456789TJQKA'.index(card[0])
-    return (num, card[1])
+    num = '--23456789TJQKA'.index(card)
+    return num
 
 
 def frequent(n):
@@ -142,26 +139,26 @@ def test():
     fh2= "7S 7D 7C 6C 6C"
     k4 = "JS JH JC JD KH"
     p2 = "5S 5D TC TH 2S"
-    assert card_parse('JH') == (11, 'H')
-    assert cards_rank(straight_flush) == [(6, 'S'), (5, 'S'), (4, 'S'), (3, 'S'), (2, 'S')]
-    assert cards_rank(p2) == [(10, 'C'), (10, 'H'), (5, 'S'), (5, 'D'), (2, "S")]
-    assert [x for x, y in cards_rank(fh)] == [7, 7, 7, 5, 5]
-    count = card_counter(cards_rank(p2))
+    assert card_parse('J') == 11
+    assert cards_rank(straight_flush) == ([6, 5, 4, 3, 2], ['S', 'S', 'S', 'S', 'S'])
+    assert cards_rank(p2) == ([10, 10, 5, 5, 2], ['S', 'D', 'C', 'H', 'S'])
+    assert cards_rank(fh)[0] == [7, 7, 7, 5, 5]
+    count = card_counter(cards_rank(p2)[0])
     count.sort()
     assert count == [(2, 1), (5, 2), (10, 2)]
-    assert card_counter(cards_rank(fh)) == [(5, 2), (7, 3)]
-    assert kind(4, cards_rank(k4)) == 11
-    assert kind(1, cards_rank(k4)) == 13
-    assert kind(3, cards_rank(fh)) == 7
-    assert kind(2, cards_rank(fh)) == 5
-    assert full_house(cards_rank(fh2))
-    assert flush(cards_rank(straight_flush))
-    assert straight(cards_rank(straight_flush))
-    assert pair(2, cards_rank(p2))
-    assert pair(1, cards_rank(p2)) is False
-    assert pair(1, cards_rank(fh))
+    assert card_counter(cards_rank(fh)[0]) == [(5, 2), (7, 3)]
+    assert kind(4, cards_rank(k4)[0]) == 11
+    assert kind(1, cards_rank(k4)[0]) == 13
+    assert kind(3, cards_rank(fh)[0]) == 7
+    assert kind(2, cards_rank(fh)[0]) == 5
+    assert full_house(cards_rank(fh2)[0])
+    assert flush(cards_rank(straight_flush)[1])
+    assert straight(cards_rank(straight_flush)[0])
+    assert pair(2, cards_rank(p2)[0])
+    assert pair(1, cards_rank(p2)[0]) is False
+    assert pair(1, cards_rank(fh)[0])
     straight_a = "AD 2C 3H 4H 5S"
-    assert straight(cards_rank(straight_a))
+    assert straight(cards_rank(straight_a)[0])
     #assert hand_rank(straight_flush) == (9, 6)
     assert max_hands([straight_a, p2]) == [straight_a]
     assert max_hands([fh, fh]) == [fh, fh]
@@ -170,5 +167,5 @@ def test():
 
 if __name__ == '__main__':
     test()
-    frequent(700000)
+    frequent(700)
 
