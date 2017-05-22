@@ -1,0 +1,4 @@
+#!/bin/sh
+cd /home/chao/python
+
+touch test2
