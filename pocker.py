@@ -23,32 +23,44 @@ def max_hands(hands):
 def hand_rank(hand):
     "return a number rank of the hand"
     ranks, suits = cards_rank(hand)
-    if straight(ranks) and flush(suits):
-        return (9, max(ranks))
-    elif kind(4, ranks):
-        return (8, kind(4, ranks), kind(1, ranks))
-    elif full_house(ranks):
-        return (7, kind(3, ranks), kind(2, ranks))
-    elif flush(suits):
-        return (6, ranks)
-    elif straight(ranks):
-        return (5, ranks)
-    elif kind(3, ranks):
-        return (4, ranks)
-    elif pair(2, ranks):
-        return (3, ranks)
-    elif pair(1, ranks):
-        return (2, ranks)
-    else:
-        return (1, ranks)
+    count = card_counter(ranks)
+    isstraight = straight(ranks)
+    isflush = flush(suits)
+    return (9 if isstraight and isflush else
+            8 if count == [4, 1] else
+            7 if count == [3, 2] else
+            6 if isflush else
+            5 if isstraight else
+            4 if count == [3, 1, 1] else
+            3 if count == [2, 2, 1] else
+            2 if count == [2, 1, 1, 1] else
+            1, ranks)
+    # if straight(ranks) and flush(suits):
+    #     return (9, max(ranks))
+    # elif kind(4, ranks):
+    #     return (8, ranks)
+    # elif full_house(ranks):
+    #     return (7, ranks)
+    # elif flush(suits):
+    #     return (6, ranks)
+    # elif straight(ranks):
+    #     return (5, ranks)
+    # elif kind(3, ranks):
+    #     return (4, ranks)
+    # elif pair(2, ranks):
+    #     return (3, ranks)
+    # elif pair(1, ranks):
+    #     return (2, ranks)
+    # else:
+    #     return (1, ranks)
 
 
 def kind(n, ranks):
     "n kind of card in ranks"
     count = card_counter(ranks)
-    for k, v in count:
+    for v in count:
         if v == n:
-            return k
+            return True
     return False
 
 def full_house(ranks):
@@ -56,7 +68,7 @@ def full_house(ranks):
     count = card_counter(ranks)
     max_c = 0
     min_c = 5
-    for k, v in count:
+    for v in count:
         if v > max_c:
             max_c = v
         if v < min_c:
@@ -85,7 +97,7 @@ def straight(hands):
 def pair(n,hands):
     count = card_counter(hands)
     pairs = 0
-    for k, v in count:
+    for v in count:
         if v == 2:
             pairs += 1
     if pairs == n:
@@ -94,11 +106,9 @@ def pair(n,hands):
 
 def card_counter(ranks):
     "count card repeated, return list like [(1,3),(11,2)]"
-    count = {}
-    for rank in ranks:
-        key = rank
-        count[key] = count.get(key, 0)+1
-    return [x for x in count.items()]
+    count = [ranks.count(x) for x in set(ranks)]
+    count.sort(reverse=True)
+    return count
 
 def cards_rank(hand):
     "parse hand '2s 3d 4h 5c 6d' to rank(6,5,4,3,2,1)"
@@ -144,13 +154,12 @@ def test():
     assert cards_rank(p2) == ([10, 10, 5, 5, 2], ['S', 'D', 'C', 'H', 'S'])
     assert cards_rank(fh)[0] == [7, 7, 7, 5, 5]
     count = card_counter(cards_rank(p2)[0])
-    count.sort()
-    assert count == [(2, 1), (5, 2), (10, 2)]
-    assert card_counter(cards_rank(fh)[0]) == [(5, 2), (7, 3)]
-    assert kind(4, cards_rank(k4)[0]) == 11
-    assert kind(1, cards_rank(k4)[0]) == 13
-    assert kind(3, cards_rank(fh)[0]) == 7
-    assert kind(2, cards_rank(fh)[0]) == 5
+    assert count == [2, 2, 1]
+    assert card_counter(cards_rank(fh)[0]) == [3, 2]
+    assert kind(4, cards_rank(k4)[0])
+    assert kind(1, cards_rank(k4)[0])
+    assert kind(3, cards_rank(fh)[0])
+    assert kind(2, cards_rank(fh)[0])
     assert full_house(cards_rank(fh2)[0])
     assert flush(cards_rank(straight_flush)[1])
     assert straight(cards_rank(straight_flush)[0])
