@@ -7,7 +7,8 @@ import random
 DECK = [r+s for r in '23456789TJQKA' for s in 'SHCD']
 
 def deal(numHands, n=5, deck=[r+s for r in '23456789TJQKA' for s in 'SHCD']):
-    random.shuffle(deck)
+    #random.shuffle(deck)
+    shuffle(deck)
     hands = []
     for x in range(numHands):
         hands.append(deck[n*x:n*(x+1)])
@@ -141,6 +142,17 @@ def frequent(n):
     for k in range(9):
         print('%s : %.4f%%'%(category[k], f[k]*100/n))
 
+def shuffle(li):
+    length = len(li)
+    isstr = isinstance(li, str)
+    if isstr:
+        li = list(li)
+    for x in range(length):
+        r = random.randrange(x, length)
+        li[x], li[r] = li[r], li[x]
+    if isstr:
+        return ''.join(li)
+
 
 def test():
     "test max_hands"
@@ -174,7 +186,17 @@ def test():
     print(deal(4))
     print('OK')
 
+def test_shuffle(num):
+    freq = {}
+    for _ in range(num):
+        t = shuffle('abc')
+        freq[t] = freq.get(t, 0)+1
+    for k, v in freq.items():
+        freq[k] = v/num*100
+    print(freq) 
+
 if __name__ == '__main__':
     test()
-    frequent(700)
+    #frequent(700)
+    test_shuffle(6000)
 
